@@ -43,6 +43,6 @@ export const AuthProvider = observer(({ children }: { children: React.ReactNode 
 
 export const useAuth = (): AuthCtx => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error('useAuth должен вызываться внутри AuthProvider');
   return ctx;
 };

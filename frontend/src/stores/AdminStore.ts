@@ -52,7 +52,7 @@ export class AdminStore {
         this.cachedAt = Date.now();
       });
     } catch {
-      runInAction(() => { this.error = 'Failed to load clients'; });
+      runInAction(() => { this.error = 'Не удалось загрузить список клиентов'; });
     } finally {
       runInAction(() => { this.loading = false; });
     }

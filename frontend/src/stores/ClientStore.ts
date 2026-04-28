@@ -68,7 +68,7 @@ export class ClientStore {
           this.profile = null;
           this.profileCachedAt = Date.now();
         } else {
-          this.profileError = 'Failed to load profile';
+          this.profileError = 'Не удалось загрузить профиль';
         }
       });
     } finally {
@@ -97,7 +97,7 @@ export class ClientStore {
         this.subscriptionsCachedAt = Date.now();
       });
     } catch {
-      runInAction(() => { this.subscriptionsError = 'Failed to load subscriptions'; });
+      runInAction(() => { this.subscriptionsError = 'Не удалось загрузить абонементы'; });
     } finally {
       runInAction(() => { this.subscriptionsLoading = false; });
     }

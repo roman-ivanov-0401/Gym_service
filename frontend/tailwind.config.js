@@ -3,19 +3,12 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
-      colors: {
-        pink: {
-          50: '#fff0f6',
-          100: '#ffe0ed',
-          200: '#ffc2d9',
-          300: '#ff94bf',
-          400: '#ff5fa3',
-          500: '#ff2d87',
-          600: '#f0006b',
-          700: '#cc0059',
-          800: '#a8004a',
-          900: '#8a0040',
-        },
+      fontFamily: {
+        sans: ['"Segoe UI"', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      boxShadow: {
+        card: '0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06)',
+        'card-lg': '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
       },
     },
   },

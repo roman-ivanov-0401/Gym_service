@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -18,53 +19,58 @@ export default function LoginPage() {
       const res = await login(form);
       await authLogin(res.data.data.accessToken, res.data.data.refreshToken);
       navigate('/dashboard');
-    } catch (e: any) {
-      setError(e.response?.data?.message ?? 'Login failed');
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e, 'Не удалось войти'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-pink-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-lg shadow-pink-100 p-8 w-full max-w-md">
+    <div className="min-h-screen bg-zinc-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-card-lg p-8 w-full max-w-md ring-1 ring-zinc-200/80">
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">💪</div>
-          <h1 className="text-2xl font-bold text-gray-800">Welcome back!</h1>
-          <p className="text-gray-400 text-sm mt-1">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">С возвращением!</h1>
+          <p className="text-zinc-500 text-sm mt-1">Войдите в свой аккаунт</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+            <label className="block text-sm font-medium text-zinc-600 mb-1">Электронная почта</label>
             <input
-              type="email" required
+              type="email"
+              required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-pink-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
+              className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 text-sm bg-zinc-50/50"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Password</label>
+            <label className="block text-sm font-medium text-zinc-600 mb-1">Пароль</label>
             <input
-              type="password" required
+              type="password"
+              required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full border border-pink-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
+              className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 text-sm bg-zinc-50/50"
               placeholder="••••••••"
             />
           </div>
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
           <button
-            type="submit" disabled={loading}
-            className="w-full bg-gradient-to-r from-pink-400 to-pink-500 text-white font-semibold py-2.5 rounded-xl hover:opacity-90 transition disabled:opacity-60"
+            type="submit"
+            disabled={loading}
+            className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Вход…' : 'Войти'}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-400 mt-6">
-          No account?{' '}
-          <Link to="/register" className="text-pink-500 font-medium hover:underline">Register</Link>
+        <p className="text-center text-sm text-zinc-500 mt-6">
+          Нет аккаунта?{' '}
+          <Link to="/register" className="text-teal-700 font-medium hover:text-teal-900 hover:underline">
+            Зарегистрироваться
+          </Link>
         </p>
       </div>
     </div>

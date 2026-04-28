@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middlewares/auth.middleware';
+import { authMiddleware, requireAdmin } from '../middlewares/auth.middleware';
 import * as ctrl from '../controllers/subscription.controller';
 
 const router = Router();
