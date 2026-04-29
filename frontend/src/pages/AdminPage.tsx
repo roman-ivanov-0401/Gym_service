@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
-import { observer } from 'mobx-react-lite';
+import { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { useStore } from '../stores/RootStore';
-import { ClientWithSubscriptions, SubscriptionType, subscriptionLabelRu } from '../api/gym';
+import { useRegisterMutation } from '../store/authApi';
+import {
+  useAdminCreateClientMutation,
+  useAdminCreateSubscriptionMutation,
+  useAdminDeleteClientMutation,
+  useGetAdminClientsQuery,
+  type ClientWithSubscriptions,
+  type SubscriptionType,
+} from '../store/gymApi';
+import { subscriptionLabelRu } from '../api/gym';
 
 interface CreateUserForm {
   name: string;
@@ -11,8 +18,17 @@ interface CreateUserForm {
   role: 'client' | 'admin';
 }
 
-const AdminPage = observer(() => {
-  const { admin } = useStore();
+function extractRegisteredUserId(body: unknown): string | undefined {
+  const r = body as { data?: { user?: { id: string } } };
+  return r.data?.user?.id;
+}
+
+export default function AdminPage() {
+  const { data: clients = [], isLoading, error, refetch } = useGetAdminClientsQuery();
+  const [deleteClient] = useAdminDeleteClientMutation();
+  const [registerMut] = useRegisterMutation();
+  const [adminCreateClient] = useAdminCreateClientMutation();
+  const [adminCreateSub] = useAdminCreateSubscriptionMutation();
 
   const [selectedClient, setSelectedClient] = useState<ClientWithSubscriptions | null>(null);
   const [search, setSearch] = useState('');
@@ -28,25 +44,39 @@ const AdminPage = observer(() => {
   const [userError, setUserError] = useState('');
   const [userSuccess, setUserSuccess] = useState('');
 
-  useEffect(() => { admin.loadClients(); }, []);
+  const loadError = error ? 'Не удалось загрузить список клиентов' : '';
 
   useEffect(() => {
-    if (selectedClient) {
-      const updated = admin.getClientById(selectedClient.id);
-      if (updated) setSelectedClient(updated);
-    }
-  }, [admin.clients]);
+    setSelectedClient((prev) => {
+      if (!prev) return null;
+      return clients.find((c) => c.id === prev.id) ?? null;
+    });
+  }, [clients]);
 
-  const filtered = admin.clients.filter(
+  const filtered = clients.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const totalClients = clients.length;
+  const totalActiveSubscriptions = useMemo(
+    () =>
+      clients.reduce(
+        (acc, c) => acc + c.subscriptions.filter((s) => new Date() <= new Date(s.endDate)).length,
+        0,
+      ),
+    [clients],
+  );
+  const clientsWithoutSubscriptions = useMemo(
+    () => clients.filter((c) => c.subscriptions.length === 0).length,
+    [clients],
+  );
+
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Удалить клиента «${name}» и все его абонементы?`)) return;
     try {
-      await admin.deleteClient(id);
+      await deleteClient(id).unwrap();
       if (selectedClient?.id === id) setSelectedClient(null);
     } catch {
       alert('Не удалось удалить клиента');
@@ -60,14 +90,18 @@ const AdminPage = observer(() => {
     setSubError('');
     setSubSuccess('');
     try {
-      await admin.createSubscriptionForClient(selectedClient.id, {
-        type: subForm.type,
-        startDate: new Date(subForm.startDate).toISOString(),
-      });
+      await adminCreateSub({
+        clientId: selectedClient.id,
+        body: {
+          type: subForm.type,
+          startDate: new Date(subForm.startDate).toISOString(),
+        },
+      }).unwrap();
       setSubSuccess('Абонемент успешно создан');
       setSubForm({ type: 'monthly', startDate: '' });
-    } catch (e: any) {
-      const d = e.response?.data;
+    } catch (e: unknown) {
+      const err = e as { data?: { error?: { message?: string }; message?: string } };
+      const d = err?.data;
       setSubError(d?.error?.message ?? d?.message ?? 'Не удалось создать абонемент');
     } finally {
       setSubSaving(false);
@@ -80,12 +114,25 @@ const AdminPage = observer(() => {
     setUserError('');
     setUserSuccess('');
     try {
-      await admin.createUser(userForm);
+      const regBody = await registerMut(userForm).unwrap();
+      const userId = extractRegisteredUserId(regBody);
+      if (userId && userForm.role === 'client') {
+        try {
+          await adminCreateClient({ userId, name: userForm.name, email: userForm.email }).unwrap();
+        } catch {
+          /* профиль в зале не создался — пользователь уже зарегистрирован */
+        }
+      }
+      void refetch();
       setUserSuccess(`Пользователь ${userForm.email} успешно зарегистрирован`);
       setUserForm({ name: '', email: '', password: '', role: 'client' });
-      setTimeout(() => { setShowCreateUser(false); setUserSuccess(''); }, 1500);
-    } catch (e: any) {
-      const d = e.response?.data;
+      setTimeout(() => {
+        setShowCreateUser(false);
+        setUserSuccess('');
+      }, 1500);
+    } catch (e: unknown) {
+      const err = e as { data?: { error?: { message?: string }; message?: string } };
+      const d = err?.data;
       setUserError(d?.error?.message ?? d?.message ?? 'Не удалось создать пользователя');
     } finally {
       setUserSaving(false);
@@ -110,7 +157,7 @@ const AdminPage = observer(() => {
               + Новый пользователь
             </button>
             <button
-              onClick={() => admin.loadClients(true)}
+              onClick={() => void refetch()}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-300 rounded-lg text-sm text-zinc-700 hover:bg-zinc-50 transition shadow-card"
             >
               Обновить
@@ -121,15 +168,15 @@ const AdminPage = observer(() => {
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white rounded-xl p-5 shadow-card border border-zinc-200/80">
             <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Всего клиентов</p>
-            <p className="text-3xl font-bold text-zinc-900">{admin.totalClients}</p>
+            <p className="text-3xl font-bold text-zinc-900">{totalClients}</p>
           </div>
           <div className="bg-white rounded-xl p-5 shadow-card border border-zinc-200/80">
             <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Активных абонементов</p>
-            <p className="text-3xl font-bold text-teal-700">{admin.totalActiveSubscriptions}</p>
+            <p className="text-3xl font-bold text-teal-700">{totalActiveSubscriptions}</p>
           </div>
           <div className="bg-white rounded-xl p-5 shadow-card border border-zinc-200/80">
             <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Без абонемента</p>
-            <p className="text-3xl font-bold text-amber-700">{admin.clientsWithoutSubscriptions}</p>
+            <p className="text-3xl font-bold text-amber-700">{clientsWithoutSubscriptions}</p>
           </div>
         </div>
 
@@ -143,10 +190,10 @@ const AdminPage = observer(() => {
           />
         </div>
 
-        {admin.loading && <div className="text-center py-16 text-teal-700 animate-pulse text-lg font-medium">Загрузка…</div>}
-        {admin.error && <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-4 text-sm">{admin.error}</div>}
+        {isLoading && <div className="text-center py-16 text-teal-700 animate-pulse text-lg font-medium">Загрузка…</div>}
+        {loadError && <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-4 text-sm">{loadError}</div>}
 
-        {!admin.loading && !admin.error && (
+        {!isLoading && !loadError && (
           <div className="flex gap-6">
             <div className="flex-1 bg-white rounded-xl shadow-card border border-zinc-200/80 overflow-hidden">
               {filtered.length === 0 ? (
@@ -215,7 +262,7 @@ const AdminPage = observer(() => {
               <div className="w-80 bg-white rounded-xl shadow-card-lg border border-zinc-200/80 ring-1 ring-zinc-100 p-5 space-y-5 self-start">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-zinc-900">{selectedClient.name}</h3>
-                  <button onClick={() => setSelectedClient(null)} className="text-zinc-400 hover:text-zinc-700 text-lg leading-none">×</button>
+                  <button type="button" onClick={() => setSelectedClient(null)} className="text-zinc-400 hover:text-zinc-700 text-lg leading-none">×</button>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="p-3 bg-zinc-50 rounded-lg border border-zinc-200"><p className="text-xs text-zinc-500">Почта</p><p className="text-zinc-800 break-all">{selectedClient.email}</p></div>
@@ -275,6 +322,7 @@ const AdminPage = observer(() => {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handleDelete(selectedClient.id, selectedClient.name)}
                   className="w-full py-2.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 transition"
                 >
@@ -327,6 +375,4 @@ const AdminPage = observer(() => {
       )}
     </div>
   );
-});
-
-export default AdminPage;
+}

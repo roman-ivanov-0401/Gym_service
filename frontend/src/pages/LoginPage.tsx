@@ -1,28 +1,25 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../api/auth';
+import { useLoginMutation } from '../store/authApi';
 import { useAuth } from '../context/AuthContext';
 import { getApiErrorMessage } from '../utils/apiError';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
+  const [loginMut, { isLoading }] = useLoginMutation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
     try {
-      const res = await login(form);
-      await authLogin(res.data.data.accessToken, res.data.data.refreshToken);
+      const res = await loginMut(form).unwrap();
+      await authLogin(res.data.accessToken, res.data.refreshToken);
       navigate('/dashboard');
     } catch (e: unknown) {
       setError(getApiErrorMessage(e, 'Не удалось войти'));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -60,10 +57,10 @@ export default function LoginPage() {
           {error && <p className="text-red-600 text-sm text-center">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={isLoading}
             className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Вход…' : 'Войти'}
+            {isLoading ? 'Вход…' : 'Войти'}
           </button>
         </form>
         <p className="text-center text-sm text-zinc-500 mt-6">

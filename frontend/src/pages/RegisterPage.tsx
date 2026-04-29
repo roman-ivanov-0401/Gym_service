@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register, login } from '../api/auth';
+import { useLoginMutation, useRegisterMutation } from '../store/authApi';
 import { useAuth } from '../context/AuthContext';
 import { getApiErrorMessage } from '../utils/apiError';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
+  const [registerMut] = useRegisterMutation();
+  const [loginMut] = useLoginMutation();
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'client' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,9 +18,9 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      await register(form);
-      const res = await login({ email: form.email, password: form.password });
-      await authLogin(res.data.data.accessToken, res.data.data.refreshToken);
+      await registerMut(form).unwrap();
+      const res = await loginMut({ email: form.email, password: form.password }).unwrap();
+      await authLogin(res.data.accessToken, res.data.refreshToken);
       navigate('/dashboard');
     } catch (e: unknown) {
       setError(getApiErrorMessage(e, 'Не удалось зарегистрироваться'));
