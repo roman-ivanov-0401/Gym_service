@@ -1,4 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);
+
+/** Не монтировать при загрузке как remote с host: иначе перезапишем #root хоста без AuthProvider. */
+const rootEl = document.getElementById('root');
+if (rootEl?.getAttribute('data-gym-app') === 'admin') {
+  void Promise.all([import('host/AuthContext'), import('host/RemoteSessionOutlet')]).then(
+    ([{ AuthProvider }, { RemoteSessionOutlet }]) => {
+      ReactDOM.createRoot(rootEl).render(
+        <React.StrictMode>
+          <AuthProvider>
+            <BrowserRouter>
+              <RemoteSessionOutlet App={App} />
+            </BrowserRouter>
+          </AuthProvider>
+        </React.StrictMode>,
+      );
+    },
+  );
+}

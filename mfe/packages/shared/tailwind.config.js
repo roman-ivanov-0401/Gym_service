@@ -1,5 +1,5 @@
 module.exports = {
+  presets: [require('./tailwind-preset')],
   content: ['../*/src/**/*.{ts,tsx}'],
-  theme: { extend: {} },
   plugins: [],
 };

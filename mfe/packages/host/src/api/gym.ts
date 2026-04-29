@@ -10,6 +10,10 @@ gymApi.interceptors.request.use((config) => {
 
 export type SubscriptionType = 'monthly' | 'yearly';
 
+export function subscriptionLabelRu(type: SubscriptionType): string {
+  return type === 'monthly' ? 'Ежемесячная' : 'Годовая';
+}
+
 export interface Client {
   id: string; userId: string; name: string; email: string; phone?: string; createdAt: string;
 }

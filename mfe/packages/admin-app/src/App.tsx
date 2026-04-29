@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
+import type { RemoteSessionProps } from '@gym/shared/remoteSession';
 import { useStore } from 'host/stores';
-import { useAuth } from 'host/AuthContext';
 import { ClientWithSubscriptions, SubscriptionType } from 'host/api/gym';
 
 // ---- Stat Card ----
 interface StatCardProps { label: string; value: number | string; color?: string; }
-const StatCard = ({ label, value, color = 'text-gray-800' }: StatCardProps) => (
-  <div className="bg-white rounded-2xl shadow-sm p-6 border border-pink-50">
-    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{label}</p>
+const StatCard = ({ label, value, color = 'text-zinc-900' }: StatCardProps) => (
+  <div className="bg-white rounded-xl shadow-card p-6 border border-zinc-200/80">
+    <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">{label}</p>
     <p className={`text-3xl font-bold mt-1 ${color}`}>{value}</p>
   </div>
 );
@@ -31,69 +31,69 @@ const CreateUserModal = ({ onClose, onSubmit }: CreateUserModalProps) => {
       onClose();
     } catch (e: any) {
       const d = e.response?.data;
-      setError(d?.error?.message ?? d?.message ?? 'Failed to create user');
+      setError(d?.error?.message ?? d?.message ?? 'Не удалось создать пользователя');
     } finally { setLoading(false); }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+    <div className="fixed inset-0 bg-zinc-900/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-card-lg ring-1 ring-zinc-200 w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Create New User</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+          <h2 className="text-lg font-bold text-zinc-900">Новый пользователь</h2>
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700 text-xl leading-none">&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Full Name</label>
+            <label className="block text-xs text-zinc-600 mb-1 font-medium">ФИО</label>
             <input
               type="text" required value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full border border-pink-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
-              placeholder="John Doe"
+              className="w-full border border-zinc-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 bg-zinc-50/50"
+              placeholder="Иван Иванов"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+            <label className="block text-xs text-zinc-600 mb-1 font-medium">Электронная почта</label>
             <input
               type="email" required value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-pink-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
+              className="w-full border border-zinc-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 bg-zinc-50/50"
               placeholder="user@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Password</label>
+            <label className="block text-xs text-zinc-600 mb-1 font-medium">Пароль</label>
             <input
               type="password" required value={form.password}
               onChange={e => setForm({ ...form, password: e.target.value })}
-              className="w-full border border-pink-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
-              placeholder="Min 8 chars, uppercase + digit"
+              className="w-full border border-zinc-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 bg-zinc-50/50"
+              placeholder="от 8 символов, заглавная и цифра"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Role</label>
+            <label className="block text-xs text-zinc-600 mb-1 font-medium">Роль</label>
             <select
               value={form.role}
               onChange={e => setForm({ ...form, role: e.target.value as 'client' | 'admin' })}
-              className="w-full border border-pink-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
+              className="w-full border border-zinc-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 bg-zinc-50/50"
             >
-              <option value="client">Client</option>
-              <option value="admin">Admin</option>
+              <option value="client">Клиент</option>
+              <option value="admin">Администратор</option>
             </select>
           </div>
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button
               type="submit" disabled={loading}
-              className="flex-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-semibold py-2.5 rounded-xl hover:opacity-90 transition disabled:opacity-60"
+              className="flex-1 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-sm font-medium transition disabled:opacity-50"
             >
-              {loading ? 'Creating...' : 'Create User'}
+              {loading ? 'Создание…' : 'Создать'}
             </button>
             <button
               type="button" onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-pink-200 text-sm text-gray-500 hover:bg-pink-50 transition"
+              className="flex-1 py-2.5 border border-zinc-300 text-zinc-700 rounded-lg text-sm hover:bg-zinc-50 transition font-medium"
             >
-              Cancel
+              Отмена
             </button>
           </div>
         </form>
@@ -125,31 +125,31 @@ const ClientDetailPanel = ({ client, onClose, onAddSubscription }: ClientDetailP
       setSubForm({ type: 'monthly', startDate: '' });
       setShowSubForm(false);
     } catch (e: any) {
-      setError(e.response?.data?.message ?? 'Failed to create subscription');
+      setError(e.response?.data?.message ?? 'Не удалось создать абонемент');
     } finally { setSaving(false); }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-zinc-900/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-card-lg ring-1 ring-zinc-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">{client.name}</h2>
-            <p className="text-sm text-gray-400">{client.email}</p>
+            <h2 className="text-lg font-bold text-zinc-900">{client.name}</h2>
+            <p className="text-sm text-zinc-500">{client.email}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700 text-xl leading-none">&times;</button>
         </div>
 
         {/* Client info */}
-        <div className="bg-pink-50 rounded-2xl p-4 mb-6">
+        <div className="bg-zinc-50 rounded-lg border border-zinc-200 p-4 mb-6">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-xs text-gray-400 uppercase font-medium">Phone</p>
-              <p className="text-gray-700 font-medium mt-0.5">{client.phone ?? '—'}</p>
+              <p className="text-xs text-zinc-500 uppercase font-medium">Телефон</p>
+              <p className="text-zinc-800 font-medium mt-0.5">{client.phone ?? '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 uppercase font-medium">Member since</p>
-              <p className="text-gray-700 font-medium mt-0.5">{new Date(client.createdAt).toLocaleDateString()}</p>
+              <p className="text-xs text-zinc-500 uppercase font-medium">Клиент с</p>
+              <p className="text-zinc-800 font-medium mt-0.5">{new Date(client.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
         </div>
@@ -157,78 +157,78 @@ const ClientDetailPanel = ({ client, onClose, onAddSubscription }: ClientDetailP
         {/* Subscriptions */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-700">Subscriptions ({client.subscriptions.length})</h3>
+            <h3 className="text-base font-semibold text-zinc-800">Абонементы ({client.subscriptions.length})</h3>
             {!showSubForm && (
               <button
                 onClick={() => setShowSubForm(true)}
-                className="text-xs bg-pink-100 text-pink-600 px-3 py-1.5 rounded-lg font-semibold hover:bg-pink-200 transition"
+                className="text-xs bg-teal-50 text-teal-800 border border-teal-100 px-3 py-1.5 rounded-lg font-semibold hover:bg-teal-100 transition"
               >
-                + Add
+                + Добавить
               </button>
             )}
           </div>
 
           {showSubForm && (
-            <form onSubmit={handleAddSub} className="bg-gray-50 rounded-2xl p-4 mb-4 space-y-3">
+            <form onSubmit={handleAddSub} className="bg-zinc-50 rounded-lg p-4 mb-4 space-y-3 border border-zinc-200">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                <label className="block text-xs font-medium text-zinc-600 mb-1">Тип</label>
                 <select
                   value={subForm.type}
                   onChange={e => setSubForm({ ...subForm, type: e.target.value as SubscriptionType })}
-                  className="w-full border border-pink-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  className="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 bg-zinc-50/50"
                 >
-                  <option value="monthly">Monthly (1 month)</option>
-                  <option value="yearly">Yearly (1 year)</option>
+                  <option value="monthly">Ежемесячный (1 месяц)</option>
+                  <option value="yearly">Годовой (1 год)</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
+                <label className="block text-xs font-medium text-zinc-600 mb-1">Дата начала</label>
                 <input
                   type="date" required value={subForm.startDate}
                   onChange={e => setSubForm({ ...subForm, startDate: e.target.value })}
-                  className="w-full border border-pink-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  className="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 bg-zinc-50/50"
                 />
               </div>
-              {error && <p className="text-red-400 text-xs">{error}</p>}
+              {error && <p className="text-red-600 text-xs">{error}</p>}
               <div className="flex gap-2">
                 <button
                   type="submit" disabled={saving}
-                  className="flex-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white text-sm font-semibold py-2 rounded-xl hover:opacity-90 transition disabled:opacity-60"
+                  className="flex-1 bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
                 >
-                  {saving ? 'Adding...' : 'Add Subscription'}
+                  {saving ? 'Создание…' : 'Создать абонемент'}
                 </button>
                 <button
                   type="button" onClick={() => { setShowSubForm(false); setError(''); }}
-                  className="px-4 py-2 rounded-xl border border-pink-200 text-xs text-gray-500 hover:bg-pink-50 transition"
+                  className="px-4 py-2 rounded-lg border border-zinc-300 text-xs text-zinc-600 hover:bg-zinc-50 transition"
                 >
-                  Cancel
+                  Отмена
                 </button>
               </div>
             </form>
           )}
 
           {client.subscriptions.length === 0 ? (
-            <div className="text-center py-6 text-gray-400 text-sm">No subscriptions yet</div>
+            <div className="text-center py-6 text-zinc-500 text-sm">Нет абонементов</div>
           ) : (
             <div className="space-y-2">
               {client.subscriptions.map(s => {
                 const active = new Date() <= new Date(s.endDate);
                 return (
-                  <div key={s.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                  <div key={s.id} className="flex items-center justify-between bg-zinc-50 rounded-lg px-4 py-3 border border-zinc-200">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize ${
-                          s.type === 'monthly' ? 'bg-pink-100 text-pink-600' : 'bg-purple-100 text-purple-600'
-                        }`}>{s.type}</span>
+                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md ${
+                          s.type === 'monthly' ? 'bg-teal-50 text-teal-900 border border-teal-100' : 'bg-zinc-100 text-zinc-800 border border-zinc-200'
+                        }`}>{s.type === 'monthly' ? 'Ежемесячная' : 'Годовая'}</span>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          active ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
-                        }`}>{active ? 'Active' : 'Expired'}</span>
+                          active ? 'bg-teal-50 text-teal-800 border border-teal-100' : 'bg-zinc-100 text-zinc-500 border border-zinc-200'
+                        }`}>{active ? 'Активен' : 'Истёк'}</span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-zinc-500 mt-1">
                         {new Date(s.startDate).toLocaleDateString()} — {new Date(s.endDate).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className={`w-2 h-2 rounded-full ${active ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${active ? 'bg-teal-500' : 'bg-zinc-300'}`}></div>
                   </div>
                 );
               })}
@@ -238,9 +238,9 @@ const ClientDetailPanel = ({ client, onClose, onAddSubscription }: ClientDetailP
 
         <button
           onClick={onClose}
-          className="w-full py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition"
+          className="w-full py-2.5 rounded-lg border border-zinc-300 text-sm text-zinc-600 hover:bg-zinc-50 transition"
         >
-          Close
+          Закрыть
         </button>
       </div>
     </div>
@@ -248,9 +248,8 @@ const ClientDetailPanel = ({ client, onClose, onAddSubscription }: ClientDetailP
 };
 
 // ---- Main Admin App ----
-const AdminApp = observer(() => {
+const AdminApp = observer((_props: RemoteSessionProps) => {
   const { admin } = useStore();
-  const { user } = useAuth();
 
   const [search, setSearch] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -293,32 +292,32 @@ const AdminApp = observer(() => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage gym clients and subscriptions</p>
+          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Панель администратора</h1>
+          <p className="text-zinc-500 text-sm mt-1">Управление клиентами и абонементами</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-gradient-to-r from-pink-400 to-pink-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition shadow-sm shadow-pink-200"
+          className="bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition shadow-card"
         >
-          + Create User
+          + Новый пользователь
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <StatCard label="Total Clients" value={admin.totalClients} />
-        <StatCard label="Active Subscriptions" value={admin.totalActiveSubscriptions} color="text-green-600" />
-        <StatCard label="No Subscription" value={admin.clientsWithoutSubscriptions} color="text-orange-500" />
+        <StatCard label="Всего клиентов" value={admin.totalClients} />
+        <StatCard label="Активных абонементов" value={admin.totalActiveSubscriptions} color="text-teal-700" />
+        <StatCard label="Без абонемента" value={admin.clientsWithoutSubscriptions} color="text-amber-700" />
       </div>
 
       {/* Search */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search by name or email..."
+          placeholder="Поиск по имени или почте…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full border border-pink-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm bg-white"
+          className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 text-sm bg-zinc-50/50"
         />
       </div>
 
@@ -326,93 +325,93 @@ const AdminApp = observer(() => {
       {admin.error && (
         <div className="bg-red-50 border border-red-200 text-red-500 rounded-xl px-4 py-3 mb-4 text-sm">
           {admin.error}
-          <button onClick={() => admin.loadClients(true)} className="ml-3 underline">Retry</button>
+          <button onClick={() => admin.loadClients(true)} className="ml-3 underline">Повторить</button>
         </div>
       )}
 
       {/* Client Table */}
       {admin.loading ? (
-        <div className="bg-white rounded-2xl border border-pink-50 p-12 text-center">
-          <p className="text-pink-400 animate-pulse text-lg">Loading clients...</p>
+        <div className="bg-white rounded-xl border border-zinc-200/80 shadow-card p-12 text-center">
+          <p className="text-teal-700 animate-pulse text-lg font-medium">Загрузка…</p>
         </div>
       ) : filteredClients.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-pink-50 p-12 text-center">
-          <p className="text-gray-400">
-            {search ? 'No clients match your search.' : 'No clients yet. Create the first one!'}
+        <div className="bg-white rounded-xl border border-zinc-200/80 shadow-card p-12 text-center">
+          <p className="text-zinc-500">
+            {search ? 'Ничего не найдено' : 'Нет зарегистрированных клиентов'}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-pink-50 overflow-hidden">
+        <div className="bg-white rounded-xl border border-zinc-200/80 shadow-card overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left text-xs font-semibold text-gray-400 uppercase px-6 py-3">Client</th>
-                <th className="text-left text-xs font-semibold text-gray-400 uppercase px-6 py-3 hidden md:table-cell">Phone</th>
-                <th className="text-left text-xs font-semibold text-gray-400 uppercase px-6 py-3">Subscriptions</th>
-                <th className="text-left text-xs font-semibold text-gray-400 uppercase px-6 py-3 hidden sm:table-cell">Member Since</th>
-                <th className="text-right text-xs font-semibold text-gray-400 uppercase px-6 py-3">Actions</th>
+              <tr className="border-b border-zinc-200 bg-zinc-50">
+                <th className="text-left text-xs font-semibold text-zinc-500 uppercase px-6 py-3">Клиент</th>
+                <th className="text-left text-xs font-semibold text-zinc-500 uppercase px-6 py-3 hidden md:table-cell">Телефон</th>
+                <th className="text-left text-xs font-semibold text-zinc-500 uppercase px-6 py-3">Абонементы</th>
+                <th className="text-left text-xs font-semibold text-zinc-500 uppercase px-6 py-3 hidden sm:table-cell">Клиент с</th>
+                <th className="text-right text-xs font-semibold text-zinc-500 uppercase px-6 py-3">Действия</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-zinc-100">
               {filteredClients.map(client => {
                 const activeCount = client.subscriptions.filter(s => new Date() <= new Date(s.endDate)).length;
                 return (
-                  <tr key={client.id} className="hover:bg-pink-50/30 transition">
+                  <tr key={client.id} className="hover:bg-zinc-50 transition">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">{client.name}</p>
-                        <p className="text-xs text-gray-400">{client.email}</p>
+                        <p className="text-sm font-semibold text-zinc-900">{client.name}</p>
+                        <p className="text-xs text-zinc-500">{client.email}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4 hidden md:table-cell">
-                      <p className="text-sm text-gray-500">{client.phone ?? '—'}</p>
+                      <p className="text-sm text-zinc-600">{client.phone ?? '—'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">{client.subscriptions.length}</span>
+                        <span className="text-sm font-medium text-zinc-700">{client.subscriptions.length}</span>
                         {activeCount > 0 && (
-                          <span className="text-xs bg-green-100 text-green-600 font-semibold px-2 py-0.5 rounded-full">
-                            {activeCount} active
+                          <span className="text-xs bg-teal-50 text-teal-800 border border-teal-100 font-semibold px-2 py-0.5 rounded-md">
+                            {activeCount} активных
                           </span>
                         )}
                         {client.subscriptions.length === 0 && (
-                          <span className="text-xs bg-orange-100 text-orange-500 font-semibold px-2 py-0.5 rounded-full">none</span>
+                          <span className="text-xs bg-zinc-100 text-zinc-500 border border-zinc-200 font-semibold px-2 py-0.5 rounded-md">нет</span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 hidden sm:table-cell">
-                      <p className="text-sm text-gray-500">{new Date(client.createdAt).toLocaleDateString()}</p>
+                      <p className="text-sm text-zinc-500">{new Date(client.createdAt).toLocaleDateString()}</p>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setSelectedClient(client)}
-                          className="text-xs text-pink-500 border border-pink-200 px-3 py-1.5 rounded-lg hover:bg-pink-50 transition font-medium"
+                          className="text-xs text-teal-800 border border-teal-200 bg-teal-50/80 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition font-medium"
                         >
-                          Manage
+                          Управление
                         </button>
                         {deleteConfirm === client.id ? (
                           <div className="flex gap-1">
                             <button
                               onClick={() => handleDelete(client.id)}
                               disabled={deleteLoading}
-                              className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition disabled:opacity-60"
+                              className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 transition disabled:opacity-60"
                             >
-                              {deleteLoading ? '...' : 'Confirm'}
+                              {deleteLoading ? '...' : 'Подтвердить'}
                             </button>
                             <button
                               onClick={() => setDeleteConfirm(null)}
-                              className="text-xs border border-gray-200 text-gray-500 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition"
+                              className="text-xs border border-zinc-300 text-zinc-600 px-2 py-1.5 rounded-lg hover:bg-zinc-50 transition"
                             >
-                              Cancel
+                              Отмена
                             </button>
                           </div>
                         ) : (
                           <button
                             onClick={() => setDeleteConfirm(client.id)}
-                            className="text-xs text-red-400 border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-50 transition font-medium"
+                            className="text-xs text-red-700 border border-red-200 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition font-medium"
                           >
-                            Delete
+                            Удалить
                           </button>
                         )}
                       </div>

@@ -14,6 +14,7 @@ module.exports = (env, argv) => {
         exposes: {
           './stores': './src/stores/RootStore',
           './AuthContext': './src/context/AuthContext',
+          './RemoteSessionOutlet': './src/components/RemoteSessionOutlet',
           './api/auth': './src/api/auth',
           './api/gym': './src/api/gym',
         },
