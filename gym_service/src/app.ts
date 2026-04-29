@@ -5,6 +5,7 @@ import { swaggerSpec } from './config/swagger';
 import clientRoutes from './routes/client.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import adminRoutes from './routes/admin.routes';
+import feedbackRoutes from './routes/feedback.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 export function createApp() {
@@ -21,6 +22,7 @@ export function createApp() {
   app.use('/clients', clientRoutes);
   app.use('/subscriptions', subscriptionRoutes);
   app.use('/admin', adminRoutes);
+  app.use('/feedback', feedbackRoutes);
 
   app.use(errorHandler);
   return app;

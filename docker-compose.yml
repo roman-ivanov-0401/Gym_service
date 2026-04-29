@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # ── Auth Service (external, do not modify) ─
   auth-service:
@@ -84,15 +82,32 @@ services:
     networks:
       - gym_network
 
-  # ── Frontend (nginx) ────────────────────────
+  # ── Frontend (Next.js) ──────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        AUTH_SERVICE_URL: http://auth-service:3000
+        GYM_SERVICE_URL: http://gym-service:3001
     container_name: gym_frontend
     restart: unless-stopped
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:3000
+      GYM_SERVICE_URL: http://gym-service:3001
+      # Облачный SMTP (Mail.ru и др.): задайте в .env в корне репозитория или здесь
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-1}
+    depends_on:
+      - auth-service
+      - gym-service
     ports:
-      - '80:80'
+      - '80:3000'
     networks:
       - gym_network
 

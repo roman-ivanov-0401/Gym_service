@@ -3,7 +3,13 @@ import swaggerJsdoc from 'swagger-jsdoc';
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
-    info: { title: 'Gym Service API', version: '1.0.0', description: 'Gym clients & subscriptions microservice' },
+    info: { title: 'Gym Service API', version: '1.0.0', description: 'Gym clients, subscriptions & feedback microservice' },
+    tags: [
+      { name: 'Clients', description: 'Client profiles' },
+      { name: 'Subscriptions', description: 'Subscriptions' },
+      { name: 'Admin', description: 'Admin operations' },
+      { name: 'Feedback', description: 'User feedback' },
+    ],
     servers: [{ url: 'http://localhost:3001', description: 'Local' }],
     components: {
       securitySchemes: {

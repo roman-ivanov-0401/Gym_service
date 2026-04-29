@@ -42,3 +42,23 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     res.status(401).json({ message: 'Invalid or expired token' });
   }
 }
+
+/** Пробует привязать пользователя к запросу; при отсутствии или невалидном токене просто продолжает. */
+export function optionalAuthMiddleware(req: Request, _res: Response, next: NextFunction): void {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer ')) {
+    next();
+    return;
+  }
+  const token = header.slice(7);
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET, {
+      issuer: env.JWT_ISSUER,
+      audience: env.JWT_AUDIENCE,
+    }) as JwtPayload;
+    req.user = payload;
+  } catch {
+    /* игнорируем невалидный опциональный токен */
+  }
+  next();
+}

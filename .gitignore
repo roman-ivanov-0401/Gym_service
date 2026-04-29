@@ -6,3 +6,4 @@ dist/
 *.txt
 *.zip
 auth_service/docker-compose.yml
+.next/
