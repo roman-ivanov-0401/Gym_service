@@ -1,9 +1,15 @@
-import { useEffect, useState } from 'react';
-import { observer } from 'mobx-react-lite';
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { useStore } from '../stores/RootStore';
-import { SubscriptionType, Subscription, subscriptionLabelRu } from '../api/gym';
+import {
+  useCreateSubscriptionMutation,
+  useDeleteSubscriptionMutation,
+  useGetMySubscriptionsQuery,
+  useUpdateSubscriptionMutation,
+  type Subscription,
+  type SubscriptionType,
+} from '../store/gymApi';
+import { subscriptionLabelRu } from '../api/gym';
 import { getApiErrorMessage } from '../utils/apiError';
 
 const BADGE: Record<SubscriptionType, string> = {
@@ -14,20 +20,20 @@ const BADGE: Record<SubscriptionType, string> = {
 const field =
   'w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 text-sm bg-zinc-50/50';
 
-const SubscriptionsPage = observer(() => {
+export default function SubscriptionsPage() {
   const { user } = useAuth();
-  const { client } = useStore();
   const isAdmin = user?.role === 'admin';
+  const { data: subscriptions = [], isLoading: subscriptionsLoading } = useGetMySubscriptionsQuery();
+  const [createSub, { isLoading: creating }] = useCreateSubscriptionMutation();
+  const [updateSub, { isLoading: updating }] = useUpdateSubscriptionMutation();
+  const [deleteSub] = useDeleteSubscriptionMutation();
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: 'monthly' as SubscriptionType, startDate: '' });
-  const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    client.loadSubscriptions();
-  }, []);
+  const saving = creating || updating;
 
   const resetForm = () => {
     setForm({ type: 'monthly', startDate: '' });
@@ -44,26 +50,27 @@ const SubscriptionsPage = observer(() => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setError('');
     try {
       const payload = { type: form.type, startDate: new Date(form.startDate).toISOString() };
       if (editId) {
-        await client.editSubscription(editId, payload);
+        await updateSub({ id: editId, body: payload }).unwrap();
       } else {
-        await client.addSubscription(payload);
+        await createSub(payload).unwrap();
       }
       resetForm();
     } catch (e: unknown) {
       setError(getApiErrorMessage(e, 'Ошибка'));
-    } finally {
-      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Удалить этот абонемент?')) return;
-    await client.removeSubscription(id);
+    try {
+      await deleteSub(id).unwrap();
+    } catch {
+      /* теги обновят кеш; ошибку можно показать при необходимости */
+    }
   };
 
   return (
@@ -132,9 +139,9 @@ const SubscriptionsPage = observer(() => {
           </div>
         )}
 
-        {client.subscriptionsLoading ? (
+        {subscriptionsLoading ? (
           <p className="text-teal-700 animate-pulse font-medium">Загрузка…</p>
-        ) : client.subscriptions.length === 0 ? (
+        ) : subscriptions.length === 0 ? (
           <div className="bg-white rounded-xl shadow-card p-10 text-center border border-zinc-200/80">
             <p className="text-zinc-500">
               Абонементов пока нет.
@@ -143,7 +150,7 @@ const SubscriptionsPage = observer(() => {
           </div>
         ) : (
           <div className="space-y-3">
-            {client.subscriptions.map((s) => {
+            {subscriptions.map((s) => {
               const active = new Date() <= new Date(s.endDate);
               return (
                 <div key={s.id} className="bg-white rounded-xl shadow-card p-4 border border-zinc-200/80">
@@ -190,6 +197,4 @@ const SubscriptionsPage = observer(() => {
       </div>
     </div>
   );
-});
-
-export default SubscriptionsPage;
+}

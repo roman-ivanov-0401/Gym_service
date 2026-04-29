@@ -1,23 +1,24 @@
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { observer } from 'mobx-react-lite';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { useStore } from '../stores/RootStore';
+import { useGetMyProfileQuery, useGetMySubscriptionsQuery } from '../store/gymApi';
 import { subscriptionLabelRu } from '../api/gym';
 
 const card = 'bg-white rounded-xl shadow-card p-6 border border-zinc-200/80';
 
-const DashboardPage = observer(() => {
+export default function DashboardPage() {
   const { user } = useAuth();
-  const { client } = useStore();
+  const { data: profile, isLoading: profileLoading } = useGetMyProfileQuery();
+  const { data: subscriptions = [], isLoading: subsLoading } = useGetMySubscriptionsQuery();
 
-  useEffect(() => {
-    client.loadProfile();
-    client.loadSubscriptions();
-  }, []);
+  const activeSubscriptions = useMemo(
+    () => subscriptions.filter((s) => new Date() <= new Date(s.endDate)),
+    [subscriptions],
+  );
 
-  const loading = client.profileLoading || client.subscriptionsLoading;
+  const loading = profileLoading || subsLoading;
+  const hasProfile = profile != null;
 
   return (
     <div className="min-h-screen bg-zinc-100">
@@ -45,21 +46,21 @@ const DashboardPage = observer(() => {
             <div className={card}>
               <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">Статус</p>
               <p className="text-xl font-bold text-zinc-900 mt-1">
-                {client.hasProfile ? 'Активный клиент' : 'Профиль не создан'}
+                {hasProfile ? 'Активный клиент' : 'Профиль не создан'}
               </p>
             </div>
             <div className={card}>
               <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">Всего абонементов</p>
-              <p className="text-xl font-bold text-zinc-900 mt-1">{client.subscriptions.length}</p>
+              <p className="text-xl font-bold text-zinc-900 mt-1">{subscriptions.length}</p>
             </div>
             <div className={card}>
               <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">Активные абонементы</p>
-              <p className="text-xl font-bold text-teal-700 mt-1">{client.activeSubscriptions.length}</p>
+              <p className="text-xl font-bold text-teal-700 mt-1">{activeSubscriptions.length}</p>
             </div>
           </div>
         )}
 
-        {!loading && client.activeSubscriptions.length > 0 && (
+        {!loading && activeSubscriptions.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-zinc-800">Активные абонементы</h2>
@@ -68,7 +69,7 @@ const DashboardPage = observer(() => {
               </Link>
             </div>
             <div className="space-y-3">
-              {client.activeSubscriptions.map((s) => (
+              {activeSubscriptions.map((s) => (
                 <div
                   key={s.id}
                   className="bg-white rounded-xl shadow-card p-4 border border-zinc-200/80 flex items-center justify-between"
@@ -88,28 +89,28 @@ const DashboardPage = observer(() => {
           </div>
         )}
 
-        {!loading && client.profile && (
+        {!loading && profile && (
           <div className={`mt-8 ${card}`}>
             <h2 className="text-lg font-semibold text-zinc-800 mb-4">Мой профиль</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wide">Имя</p>
-                <p className="font-medium text-zinc-900 mt-0.5">{client.profile.name}</p>
+                <p className="font-medium text-zinc-900 mt-0.5">{profile.name}</p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wide">Почта</p>
-                <p className="font-medium text-zinc-900 mt-0.5">{client.profile.email}</p>
+                <p className="font-medium text-zinc-900 mt-0.5">{profile.email}</p>
               </div>
-              {client.profile.phone && (
+              {profile.phone && (
                 <div>
                   <p className="text-xs text-zinc-500 uppercase tracking-wide">Телефон</p>
-                  <p className="font-medium text-zinc-900 mt-0.5">{client.profile.phone}</p>
+                  <p className="font-medium text-zinc-900 mt-0.5">{profile.phone}</p>
                 </div>
               )}
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wide">Клиент с</p>
                 <p className="font-medium text-zinc-900 mt-0.5">
-                  {new Date(client.profile.createdAt).toLocaleDateString()}
+                  {new Date(profile.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -118,6 +119,4 @@ const DashboardPage = observer(() => {
       </div>
     </div>
   );
-});
-
-export default DashboardPage;
+}
