@@ -20,7 +20,7 @@ services:
       REFRESH_TOKEN_SECRET: your-refresh-token-secret-key-change-this-in-production-min-32-chars
       REFRESH_TOKEN_EXPIRES_IN: 30d
       BCRYPT_SALT_ROUNDS: 12
-      CORS_ORIGINS: http://localhost:80,http://localhost
+      CORS_ORIGINS: http://localhost:80,http://localhost,http://localhost:4000,http://localhost:4001,http://localhost:4002
     ports:
       - '3000:3000'
     networks:
@@ -84,15 +84,37 @@ services:
     networks:
       - gym_network
 
-  # ── Frontend (nginx) ────────────────────────
-  frontend:
+  # ── Microfrontends (Module Federation, см. mfe/README.md) ──
+  mfe-host:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: gym_frontend
+      context: ./mfe
+      dockerfile: packages/host/Dockerfile
+    container_name: gym_mfe_host
     restart: unless-stopped
     ports:
-      - '80:80'
+      - '4000:80'
+    networks:
+      - gym_network
+
+  mfe-client-app:
+    build:
+      context: ./mfe
+      dockerfile: packages/client-app/Dockerfile
+    container_name: gym_mfe_client
+    restart: unless-stopped
+    ports:
+      - '4001:80'
+    networks:
+      - gym_network
+
+  mfe-admin-app:
+    build:
+      context: ./mfe
+      dockerfile: packages/admin-app/Dockerfile
+    container_name: gym_mfe_admin
+    restart: unless-stopped
+    ports:
+      - '4002:80'
     networks:
       - gym_network
 
